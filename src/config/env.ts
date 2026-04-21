@@ -22,6 +22,12 @@ const env = {
     10,
   ),
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || "",
+  FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:3000",
+  SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || "587", 10),
+  SMTP_USER: process.env.SMTP_USER || "",
+  SMTP_PASS: process.env.SMTP_PASS || "",
+  SMTP_FROM: process.env.SMTP_FROM || "",
 } as const;
 
 if (env.NODE_ENV === "production") {

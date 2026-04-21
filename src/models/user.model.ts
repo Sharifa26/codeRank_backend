@@ -29,6 +29,16 @@ const userSchema = new Schema<IUser>(
       minlength: [6, "Password must be at least 6 characters"],
       select: false,
     },
+    resetPasswordTokenHash: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    resetPasswordExpiresAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
   },
   {
     timestamps: true,

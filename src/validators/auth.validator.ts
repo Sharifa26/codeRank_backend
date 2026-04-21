@@ -32,3 +32,12 @@ export const loginSchema = Joi.object({
     "any.required": "Password is required",
   }),
 });
+
+export const forgotPasswordSchema = Joi.object({
+  email: Joi.string().trim().email().lowercase().required(),
+});
+
+export const resetPasswordSchema = Joi.object({
+  token: Joi.string().required(),
+  newPassword: Joi.string().min(6).max(128).required(),
+});

@@ -55,7 +55,12 @@ MAX_QUEUE_SIZE=100
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
 GEMINI_API_KEY=your_gemini_api_key
-```
+FRONTEND_URL=http://localhost:3000
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_password
+SMTP_FROM="CodeRank <your_email@gmail.com>"
 
 ## How To Run
 
@@ -120,6 +125,8 @@ GET /api/v1/health
 - `POST /api/v1/auth/signup`
 - `POST /api/v1/auth/login`
 - `GET /api/v1/auth/me`
+- `POST /api/v1/auth/reset-password`
+- `POST /api/v1/auth/forgot-password`
 
 ### Code
 

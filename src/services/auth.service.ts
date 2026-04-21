@@ -4,6 +4,10 @@ import User from "../models/user.model";
 import { IUser, IUserPayload } from "../types/index";
 import { ApiError } from "../utils/apiError";
 import env from "../config/env";
+import * as crypto from "node:crypto";
+import emailService from "../services/email.service";
+
+const RESET_TTL_MS = 15 * 60 * 1000;
 
 class AuthService {
   /**
@@ -82,6 +86,53 @@ class AuthService {
     }
 
     return user;
+  }
+
+  /**
+   * Forget password and send reset email
+   */
+  async forgotPassword(email: string): Promise<void> {
+    const user = await User.findOne({ email }).select(
+      "+resetPasswordTokenHash +resetPasswordExpiresAt",
+    );
+    if (!user) return;
+
+    const rawToken = crypto.randomBytes(32).toString("hex"); // 64 chars
+    const tokenHash = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    user.resetPasswordTokenHash = tokenHash;
+    user.resetPasswordExpiresAt = new Date(Date.now() + RESET_TTL_MS);
+    await user.save();
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+
+    await emailService.sendPasswordResetEmail(user.email, resetUrl);
+  }
+
+  /**
+   * Reset password
+   * Requires a valid reset token
+   */
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordTokenHash: tokenHash,
+      resetPasswordExpiresAt: { $gt: new Date() },
+    }).select("+resetPasswordTokenHash +resetPasswordExpiresAt");
+
+    if (!user) {
+      throw new ApiError(400, "Invalid or expired reset token");
+    }
+
+    user.password = newPassword;
+    user.resetPasswordTokenHash = null;
+    user.resetPasswordExpiresAt = null;
+
+    await user.save();
   }
 }
 
