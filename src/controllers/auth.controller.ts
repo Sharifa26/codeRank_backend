@@ -42,6 +42,8 @@ class AuthController {
           id: user._id,
           username: user.username,
           email: user.email,
+          avatar: user.avatar,
+          authProvider: user.authProvider,
         },
         token,
       });
@@ -97,6 +99,8 @@ class AuthController {
           id: user._id,
           username: user.username,
           email: user.email,
+          avatar: user.avatar,
+          authProvider: user.authProvider,
           createdAt: user.createdAt,
         },
       });
