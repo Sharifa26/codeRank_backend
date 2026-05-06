@@ -51,6 +51,35 @@ class AuthController {
   }
 
   /**
+   * POST /api/v1/auth/google
+   * Authenticate user with Google and return token
+   */
+  async googleLogin(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const { idToken } = req.body;
+
+      const { user, token } = await authService.googleLogin(idToken);
+
+      ApiResponse.success(res, 200, "Google login successful", {
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          avatar: user.avatar,
+          authProvider: user.authProvider,
+        },
+        token,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * GET /api/v1/auth/me
    * Get current authenticated user details
    */

@@ -1,13 +1,15 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 import User from "../models/user.model";
-import { IUser, IUserPayload } from "../types/index";
+import { AuthProvider, IUser, IUserPayload } from "../types/index";
 import { ApiError } from "../utils/apiError";
 import env from "../config/env";
 import * as crypto from "node:crypto";
 import emailService from "../services/email.service";
 
 const RESET_TTL_MS = 15 * 60 * 1000;
+const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
 class AuthService {
   /**
@@ -47,6 +49,10 @@ class AuthService {
       throw new ApiError(401, "Invalid email or email not found");
     }
 
+    if (!user.password) {
+      throw new ApiError(401, "Please login with Google");
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -56,6 +62,62 @@ class AuthService {
     const token = this.generateToken(user);
 
     user.password = undefined as any;
+
+    return { user, token };
+  }
+
+  /**
+   * Authenticate a user with a Google ID token.
+   */
+  async googleLogin(idToken: string): Promise<{ user: IUser; token: string }> {
+    if (!env.GOOGLE_CLIENT_ID) {
+      throw new ApiError(500, "Google login is not configured");
+    }
+
+    let payload;
+
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken,
+        audience: env.GOOGLE_CLIENT_ID,
+      });
+
+      payload = ticket.getPayload();
+    } catch {
+      throw new ApiError(401, "Invalid Google ID token");
+    }
+
+    if (!payload?.sub || !payload.email || !payload.email_verified) {
+      throw new ApiError(401, "Google account email is not verified");
+    }
+
+    const email = payload.email.toLowerCase();
+    let user = await User.findOne({
+      $or: [{ googleId: payload.sub }, { email }],
+    });
+
+    if (!user) {
+      user = await User.create({
+        username: await this.createUniqueGoogleUsername(
+          payload.name || email.split("@")[0] || "google_user",
+        ),
+        email,
+        googleId: payload.sub,
+        authProvider: AuthProvider.GOOGLE,
+        avatar: payload.picture || null,
+      });
+    } else {
+      user.googleId = user.googleId || payload.sub;
+      user.avatar = payload.picture || user.avatar;
+
+      if (user.authProvider !== AuthProvider.GOOGLE) {
+        user.authProvider = AuthProvider.GOOGLE;
+      }
+
+      await user.save();
+    }
+
+    const token = this.generateToken(user);
 
     return { user, token };
   }
@@ -73,6 +135,32 @@ class AuthService {
     return jwt.sign(payload, env.JWT_SECRET, {
       expiresIn: env.JWT_EXPIRES_IN,
     } as jwt.SignOptions);
+  }
+
+  private async createUniqueGoogleUsername(
+    displayName: string,
+  ): Promise<string> {
+    const fallback = `user${Date.now().toString().slice(-6)}`;
+    const normalized = displayName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "");
+
+    const base = (normalized || fallback).slice(0, 24).padEnd(3, "0");
+
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const suffix = attempt === 0 ? "" : `${attempt}`;
+      const username = `${base.slice(0, 30 - suffix.length)}${suffix}`;
+      const existingUser = await User.exists({ username });
+
+      if (!existingUser) {
+        return username;
+      }
+    }
+
+    return `user${crypto.randomBytes(6).toString("hex").slice(0, 12)}`;
   }
 
   /**

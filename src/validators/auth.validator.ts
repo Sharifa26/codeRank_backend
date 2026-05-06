@@ -33,6 +33,13 @@ export const loginSchema = Joi.object({
   }),
 });
 
+export const googleLoginSchema = Joi.object({
+  idToken: Joi.string().required().messages({
+    "any.required": "Google ID token is required",
+    "string.empty": "Google ID token is required",
+  }),
+});
+
 export const forgotPasswordSchema = Joi.object({
   email: Joi.string().trim().email().lowercase().required(),
 });

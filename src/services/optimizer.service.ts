@@ -59,16 +59,31 @@ class OptimizerService {
               {
                 parts: [
                   {
-                    text: `You are an expert ${language} developer.
+                    text: `You are a coding assistant.
 
-Return STRICT JSON only:
+STRICT RULES:
+- Keep the code SIMPLE
+- Do NOT add new functions
+- Do NOT rename functions
+- Do NOT add docstrings or comments
+- Do NOT change the logic
+- Do NOT increase code length
+- Only fix small mistakes if necessary
+- If code is already correct, return it as-is
+
+OUTPUT FORMAT (STRICT JSON ONLY):
 {
   "optimizedCode": "...",
-  "suggestions": ["..."],
-  "improvements": ["..."]
+  "suggestions": [],
+  "improvements": []
 }
 
-Optimize this code:
+IMPORTANT:
+- suggestions must be max 2 short points
+- improvements must be max 2 short points
+- Keep everything minimal and clean
+
+Code:
 ${code}`,
                   },
                 ],

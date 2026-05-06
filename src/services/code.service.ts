@@ -160,6 +160,23 @@ class CodeService {
       shareUrl: `/api/v1/code/shared/${shareId}`,
     };
   }
+
+  /**
+   * Delete a code snippet
+   */
+  async deleteCode(codeId: string, userId: string): Promise<void> {
+    const snippet = await CodeSnippet.findById(codeId);
+
+    if (!snippet) {
+      throw new ApiError(404, "Code snippet not found");
+    }
+
+    if (snippet.userId.toString() !== userId) {
+      throw new ApiError(403, "You can only delete your own code snippets");
+    }
+
+    await CodeSnippet.findByIdAndDelete(codeId);
+  }
 }
 
 export default new CodeService();

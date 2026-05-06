@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
-import { IUser } from "../types/index";
+import { IUser, AuthProvider } from "../types/index";
 import { CONSTANTS } from "../utils/constants";
 
 const userSchema = new Schema<IUser>(
@@ -8,7 +8,6 @@ const userSchema = new Schema<IUser>(
     username: {
       type: String,
       required: [true, "Username is required"],
-      unique: true,
       trim: true,
       minlength: [3, "Username must be at least 3 characters"],
       maxlength: [30, "Username cannot exceed 30 characters"],
@@ -23,11 +22,28 @@ const userSchema = new Schema<IUser>(
       match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"],
       index: true,
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
+    authProvider: {
+      type: String,
+      enum: Object.values(AuthProvider),
+      default: AuthProvider.LOCAL,
+    },
+    avatar: {
+      type: String,
+      default: null,
+    },
     password: {
       type: String,
-      required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
       select: false,
+      required: function (this: IUser): boolean {
+        return this.authProvider === AuthProvider.LOCAL;
+      },
     },
     resetPasswordTokenHash: {
       type: String,

@@ -60,3 +60,9 @@ export const optimizeCodeSchema = Joi.object({
     "any.required": "Code is required",
   }),
 });
+
+export const deleteCodeSchema = Joi.object({
+  id: Joi.string().required().messages({
+    "any.required": "Code snippet ID is required",
+  }),
+});

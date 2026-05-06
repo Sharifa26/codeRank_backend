@@ -182,6 +182,27 @@ class CodeController {
       next(error);
     }
   }
+
+  /**
+   * Delete  /api/v1/code/delete/:id
+   * Delete a code snippet
+   */
+  async deleteCode(
+    req: IAuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const { id } = req.params as { id: string };
+      const userId = req.user!.userId;
+
+      await codeService.deleteCode(id, userId);
+
+      ApiResponse.success(res, 200, "Code snippet deleted successfully");
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new CodeController();

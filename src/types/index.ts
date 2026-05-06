@@ -2,11 +2,19 @@ import { Request } from "express";
 import { Document, Types } from "mongoose";
 
 // ==================== User Types ====================
+export enum AuthProvider {
+  LOCAL = "local",
+  GOOGLE = "google",
+}
+
 export interface IUser extends Document {
   _id: Types.ObjectId;
   username: string;
   email: string;
   password: string;
+  googleId?: string | null;
+  authProvider: AuthProvider;
+  avatar?: string | null;
 
   resetPasswordTokenHash?: string | null;
   resetPasswordExpiresAt?: Date | null;

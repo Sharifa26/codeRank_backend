@@ -6,6 +6,7 @@ import { authLimiter } from "../middlewares/rateLimiter.middleware";
 import {
   signupSchema,
   loginSchema,
+  googleLoginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
 } from "../validators/auth.validator";
@@ -20,6 +21,13 @@ router.post(
 );
 
 router.post("/login", authLimiter, validate(loginSchema), authController.login);
+
+router.post(
+  "/google",
+  authLimiter,
+  validate(googleLoginSchema),
+  authController.googleLogin,
+);
 
 router.get("/me", authenticate, authController.getMe);
 

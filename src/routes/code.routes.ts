@@ -11,6 +11,7 @@ import {
   saveCodeSchema,
   shareCodeSchema,
   optimizeCodeSchema,
+  deleteCodeSchema,
 } from "../validators/code.validator";
 
 const router = Router();
@@ -51,6 +52,14 @@ router.post(
   executionLimiter,
   validate(optimizeCodeSchema),
   codeController.optimizeCode,
+);
+
+router.delete(
+  "/delete/:id",
+  authenticate,
+  generalLimiter,
+  validate(deleteCodeSchema),
+  codeController.deleteCode,
 );
 
 export default router;

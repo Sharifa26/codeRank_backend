@@ -22,6 +22,7 @@ const env = {
     10,
   ),
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || "",
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || process.env.CLIENT_ID || "",
   FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:3000",
   SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
   SMTP_PORT: parseInt(process.env.SMTP_PORT || "587", 10),
