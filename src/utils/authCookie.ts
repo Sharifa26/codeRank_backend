@@ -5,7 +5,7 @@ export const AUTH_COOKIE_NAME = "codenova_auth";
 
 const getCookieOptions = () => ({
   httpOnly: true,
-  secure: env.NODE_ENV === "production",
+  secure: false,
   sameSite: "lax" as const,
   path: "/",
 });
