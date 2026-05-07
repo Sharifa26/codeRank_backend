@@ -87,31 +87,31 @@ app.use(
   }),
 );
 
-app.use((req, res, next) => {
-  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
-    return next();
-  }
+// app.use((req, res, next) => {
+//   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+//     return next();
+//   }
 
-  const origin = req.headers.origin;
-  const referer = req.headers.referer;
-  const trustedOrigin = env.FRONTEND_URL;
+//   const origin = req.headers.origin;
+//   const referer = req.headers.referer;
+//   const trustedOrigin = env.FRONTEND_URL;
 
-  if (origin && origin !== trustedOrigin) {
-    return res.status(403).json({
-      success: false,
-      message: "Invalid request origin",
-    });
-  }
+//   if (origin && origin !== trustedOrigin) {
+//     return res.status(403).json({
+//       success: false,
+//       message: "Invalid request origin",
+//     });
+//   }
 
-  if (!origin && referer && !referer.startsWith(`${trustedOrigin}/`)) {
-    return res.status(403).json({
-      success: false,
-      message: "Invalid request origin",
-    });
-  }
+//   if (!origin && referer && !referer.startsWith(`${trustedOrigin}/`)) {
+//     return res.status(403).json({
+//       success: false,
+//       message: "Invalid request origin",
+//     });
+//   }
 
-  next();
-});
+//   next();
+// });
 
 // Request logging
 if (env.NODE_ENV === "development") {
