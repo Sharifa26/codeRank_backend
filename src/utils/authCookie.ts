@@ -1,4 +1,5 @@
 import { Response } from "express";
+import { CookieOptions } from "express-serve-static-core";
 import env from "../config/env";
 
 export const AUTH_COOKIE_NAME = "codenova_auth";
@@ -18,13 +19,14 @@ const isCrossSite = Boolean(
   frontendHost && backendHost && frontendHost !== backendHost,
 );
 
-export const getAuthCookieOptions = () => {
+export const getAuthCookieOptions = (): CookieOptions => {
   const secure = env.NODE_ENV === "production" || backendIsHttps;
 
   return {
     httpOnly: true,
     secure,
     sameSite: isCrossSite ? ("none" as const) : ("lax" as const),
+    domain: env.COOKIE_DOMAIN,
     path: "/",
   };
 };

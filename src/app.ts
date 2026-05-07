@@ -24,7 +24,7 @@ const app: Application = express();
 const server = http.createServer(app);
 app.set("trust proxy", 1);
 
-const allowedOrigins = new Set([env.FRONTEND_URL].filter(Boolean));
+const allowedOrigins = new Set(env.FRONTEND_URLS);
 const corsOptions: CorsOptions = {
   origin(origin, callback) {
     if (!origin || allowedOrigins.has(origin)) {
