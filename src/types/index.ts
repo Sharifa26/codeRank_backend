@@ -66,7 +66,9 @@ export interface ICodeSnippet extends Document {
 
 export enum ExecutionStatus {
   PENDING = "pending",
+  COMPILING = "compiling",
   RUNNING = "running",
+  WAITING_FOR_INPUT = "waiting_for_input",
   COMPLETED = "completed",
   ERROR = "error",
   TIMEOUT = "timeout",
@@ -85,6 +87,51 @@ export interface IExecutionResult {
   exitCode: number;
   executionTime: number;
   status: ExecutionStatus;
+}
+
+export type ExecutionOutputStream = "stdout" | "stderr";
+
+export interface IExecutionStartPayload {
+  language: Language;
+  code: string;
+  stdin?: string;
+}
+
+export interface IExecutionStatusPayload {
+  executionId: string;
+  status: ExecutionStatus;
+  message?: string;
+}
+
+export interface IExecutionOutputPayload {
+  executionId: string;
+  stream: ExecutionOutputStream;
+  data: string;
+}
+
+export interface IExecutionCompletePayload extends IExecutionResult {
+  executionId: string;
+}
+
+export interface IExecutionInputPayload {
+  executionId?: string;
+  data: string;
+}
+
+export interface IExecutionStopPayload {
+  executionId?: string;
+}
+
+export interface IExecutionCallbacks {
+  onStatus: (payload: IExecutionStatusPayload) => void;
+  onOutput: (payload: IExecutionOutputPayload) => void;
+  onComplete: (payload: IExecutionCompletePayload) => void;
+}
+
+export interface IInteractiveExecutionSession {
+  id: string;
+  writeStdin: (data: string) => void;
+  stop: (reason?: string) => Promise<void>;
 }
 
 // ==================== Queue Types ====================

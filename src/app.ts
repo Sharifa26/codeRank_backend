@@ -1,7 +1,10 @@
 import express, { Application } from "express";
+import http from "http";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import jwt from "jsonwebtoken";
+import { Server as SocketIOServer } from "socket.io";
 import connectDB from "./config/db";
 import env from "./config/env";
 import authRoutes from "./routes/auth.routes";
@@ -13,22 +16,102 @@ import {
   errorHandler,
   notFoundHandler,
 } from "./middlewares/errorHandler.middleware";
+import { registerExecutionSocket } from "./socket/execution.socket";
+import { IUserPayload } from "./types/index";
+import { AUTH_COOKIE_NAME, readCookie } from "./utils/authCookie";
 
 const app: Application = express();
+const server = http.createServer(app);
+app.set("trust proxy", 1);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: env.FRONTEND_URL,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  transports: ["websocket"],
+});
+
+io.use((socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token;
+    const cookieToken = readCookie(
+      socket.handshake.headers.cookie,
+      AUTH_COOKIE_NAME,
+    );
+    const authToken = typeof token === "string" && token ? token : cookieToken;
+
+    if (!authToken) {
+      return next(new Error("Authentication required"));
+    }
+
+    const decoded = jwt.verify(authToken, env.JWT_SECRET) as IUserPayload;
+    socket.data.user = {
+      userId: decoded.userId,
+      email: decoded.email,
+      username: decoded.username,
+    };
+
+    next();
+  } catch {
+    next(new Error("Invalid or expired token"));
+  }
+});
+
+registerExecutionSocket(io);
 
 // ==================== Global Middlewares ====================
 
 // Security headers
 app.use(helmet());
 
+app.use((req, res, next) => {
+  if (
+    env.NODE_ENV === "production" &&
+    req.headers["x-forwarded-proto"] !== "https" &&
+    !req.secure
+  ) {
+    return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+  }
+
+  next();
+});
+
 // CORS configuration
 app.use(
   cors({
-    origin: "*",
+    origin: env.FRONTEND_URL,
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+
+app.use((req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    return next();
+  }
+
+  const origin = req.headers.origin;
+  const referer = req.headers.referer;
+  const trustedOrigin = env.FRONTEND_URL;
+
+  if (origin && origin !== trustedOrigin) {
+    return res.status(403).json({
+      success: false,
+      message: "Invalid request origin",
+    });
+  }
+
+  if (!origin && referer && !referer.startsWith(`${trustedOrigin}/`)) {
+    return res.status(403).json({
+      success: false,
+      message: "Invalid request origin",
+    });
+  }
+
+  next();
+});
 
 // Request logging
 if (env.NODE_ENV === "development") {
@@ -78,7 +161,7 @@ const startServer = async (): Promise<void> => {
   try {
     await connectDB();
 
-    app.listen(env.PORT, () => {
+    server.listen(env.PORT, () => {
       console.log(`🚀 Server started on port http://localhost:${env.PORT}`);
     });
   } catch (error) {
@@ -102,12 +185,12 @@ process.on("unhandledRejection", (reason, promise) => {
 // Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("🛑 SIGTERM received. Shutting down gracefully...");
-  process.exit(0);
+  server.close(() => process.exit(0));
 });
 
 process.on("SIGINT", () => {
   console.log("🛑 SIGINT received. Shutting down gracefully...");
-  process.exit(0);
+  server.close(() => process.exit(0));
 });
 
 startServer();

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import env from "../config/env";
 import { IAuthRequest, IUserPayload } from "../types/index";
 import { ApiError } from "../utils/apiError";
+import { AUTH_COOKIE_NAME, readCookie } from "../utils/authCookie";
 
 export const authenticate = (
   req: IAuthRequest,
@@ -11,15 +12,15 @@ export const authenticate = (
 ): void => {
   try {
     const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new ApiError(401, "Access denied. No token provided.");
-    }
-
-    const token = authHeader.split(" ")[1];
+    const cookieToken = readCookie(req.headers.cookie, AUTH_COOKIE_NAME);
+    const bearerToken =
+      authHeader && authHeader.startsWith("Bearer ")
+        ? authHeader.split(" ")[1]
+        : null;
+    const token = cookieToken || bearerToken;
 
     if (!token) {
-      throw new ApiError(401, "Access denied. Invalid token format.");
+      throw new ApiError(401, "Access denied. No token provided.");
     }
 
     const decoded = jwt.verify(token, env.JWT_SECRET) as IUserPayload;

@@ -1,6 +1,8 @@
 import Joi from "joi";
 import { Language } from "../types/index";
 
+const objectIdSchema = Joi.string().hex().length(24);
+
 /**
  * Validation schemas for code execution endpoints
  */
@@ -42,7 +44,9 @@ export const saveCodeSchema = Joi.object({
 });
 
 export const shareCodeSchema = Joi.object({
-  codeId: Joi.string().required().messages({
+  codeId: objectIdSchema.required().messages({
+    "string.hex": "Code snippet ID must be a valid ID",
+    "string.length": "Code snippet ID must be a valid ID",
     "any.required": "Code snippet ID is required",
   }),
 });
@@ -62,7 +66,9 @@ export const optimizeCodeSchema = Joi.object({
 });
 
 export const deleteCodeSchema = Joi.object({
-  id: Joi.string().required().messages({
+  id: objectIdSchema.required().messages({
+    "string.hex": "Code snippet ID must be a valid ID",
+    "string.length": "Code snippet ID must be a valid ID",
     "any.required": "Code snippet ID is required",
   }),
 });

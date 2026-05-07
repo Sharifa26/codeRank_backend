@@ -77,7 +77,10 @@ class DockerService {
   private async executeJob(job: IQueueJob): Promise<IExecutionResult> {
     const { language, code, stdin } = job.executionRequest;
     const config = LANGUAGE_CONFIG[language];
-    const sanitizedCode = sanitizeCode(code);
+    const encodedSource = Buffer.from(sanitizeCode(code), "utf8").toString(
+      "base64",
+    );
+    const encodedStdin = Buffer.from(stdin || "", "utf8").toString("base64");
 
     const startTime = Date.now();
     let container: Docker.Container | null = null;
@@ -92,19 +95,17 @@ class DockerService {
         cmd = config.runCmd;
       }
 
-      // Wrap with stdin handling
+      // Wrap with stdin handling. Source/stdin are passed as base64 so user
+      // content is never interpolated directly into shell syntax.
       const fullCmd = stdin
-        ? `echo '${Buffer.from(stdin).toString("base64")}' | base64 -d | bash -c "${cmd}"`
+        ? `printf '%s' '${encodedStdin}' | base64 -d | bash -c "${cmd}"`
         : `bash -c "${cmd}"`;
+      const writeSource = `printf '%s' '${encodedSource}' | base64 -d > /code/${config.fileName}`;
 
       // Create container with resource limits
       container = await this.docker.createContainer({
         Image: config.image,
-        Cmd: [
-          "/bin/bash",
-          "-c",
-          `cat > /code/${config.fileName} << 'CODEEOF'\n${sanitizedCode}\nCODEEOF\n${fullCmd}`,
-        ],
+        Cmd: ["/bin/bash", "-c", `${writeSource} && ${fullCmd}`],
         WorkingDir: "/code",
         User: "coderunner",
         NetworkDisabled: true,

@@ -31,6 +31,8 @@ router.post(
 
 router.get("/me", authenticate, authController.getMe);
 
+router.post("/logout", authenticate, authController.logout);
+
 router.post(
   "/forgot-password",
   authLimiter,

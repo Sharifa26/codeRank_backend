@@ -7,6 +7,10 @@ import env from "../config/env";
  * Uses OpenAI API if available, otherwise provides rule-based suggestions
  */
 class OptimizerService {
+  private hasValidGeminiApiKey(): boolean {
+    return /^[A-Za-z0-9_-]{20,}$/.test(env.GEMINI_API_KEY);
+  }
+
   /**
    * Optimize code using AI or rule-based system
    */
@@ -18,7 +22,7 @@ class OptimizerService {
     suggestions: string[];
     improvements: string[];
   }> {
-    if (env.GEMINI_API_KEY) {
+    if (this.hasValidGeminiApiKey()) {
       return this.aiOptimize(language, code);
     }
 

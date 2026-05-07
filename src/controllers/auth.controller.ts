@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import authService from "../services/auth.service";
 import { ApiResponse } from "../utils/apiResponse";
 import { IAuthRequest } from "../types/index";
+import { clearAuthCookie, setAuthCookie } from "../utils/authCookie";
 
 class AuthController {
   /**
@@ -36,6 +37,7 @@ class AuthController {
       const { email, password } = req.body;
 
       const { user, token } = await authService.login(email, password);
+      setAuthCookie(res, token);
 
       ApiResponse.success(res, 200, "Login successful", {
         user: {
@@ -45,7 +47,6 @@ class AuthController {
           avatar: user.avatar,
           authProvider: user.authProvider,
         },
-        token,
       });
     } catch (error) {
       next(error);
@@ -65,6 +66,7 @@ class AuthController {
       const { idToken } = req.body;
 
       const { user, token } = await authService.googleLogin(idToken);
+      setAuthCookie(res, token);
 
       ApiResponse.success(res, 200, "Google login successful", {
         user: {
@@ -74,7 +76,6 @@ class AuthController {
           avatar: user.avatar,
           authProvider: user.authProvider,
         },
-        token,
       });
     } catch (error) {
       next(error);
@@ -104,6 +105,23 @@ class AuthController {
           createdAt: user.createdAt,
         },
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/v1/auth/logout
+   * Clear the authentication cookie
+   */
+  async logout(
+    _req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      clearAuthCookie(res);
+      ApiResponse.success(res, 200, "Logout successful");
     } catch (error) {
       next(error);
     }

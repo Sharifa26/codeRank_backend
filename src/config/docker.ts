@@ -24,14 +24,14 @@ export const LANGUAGE_CONFIG: Record<Language, ILanguageConfig> = {
     image: "coderank-executor",
     fileName: "solution.c",
     compileCmd: "gcc /code/solution.c -o /code/solution -lm",
-    runCmd: "/code/solution",
+    runCmd: "stdbuf -i0 -o0 -e0 /code/solution",
     timeout: 10000,
   },
   [Language.CPP]: {
     image: "coderank-executor",
     fileName: "solution.cpp",
     compileCmd: "g++ /code/solution.cpp -o /code/solution -lm",
-    runCmd: "/code/solution",
+    runCmd: "stdbuf -i0 -o0 -e0 /code/solution",
     timeout: 10000,
   },
   [Language.RUBY]: {

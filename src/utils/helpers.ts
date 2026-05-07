@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import crypto from "node:crypto";
 import { CONSTANTS } from "./constants";
 
 /**
@@ -6,7 +6,10 @@ import { CONSTANTS } from "./constants";
  * Uses UUID v4 truncated to desired length
  */
 export const generateShareId = (): string => {
-  return uuidv4().replace(/-/g, "").substring(0, CONSTANTS.SHARE_ID_LENGTH);
+  return crypto
+    .randomBytes(Math.ceil((CONSTANTS.SHARE_ID_LENGTH * 3) / 4))
+    .toString("base64url")
+    .slice(0, CONSTANTS.SHARE_ID_LENGTH);
 };
 
 /**

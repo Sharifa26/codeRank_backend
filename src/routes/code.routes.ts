@@ -7,7 +7,6 @@ import {
   generalLimiter,
 } from "../middlewares/rateLimiter.middleware";
 import {
-  runCodeSchema,
   saveCodeSchema,
   shareCodeSchema,
   optimizeCodeSchema,
@@ -17,14 +16,6 @@ import {
 const router = Router();
 
 router.get("/shared/:shareId", codeController.getSharedCode);
-
-router.post(
-  "/run",
-  authenticate,
-  executionLimiter,
-  validate(runCodeSchema),
-  codeController.runCode,
-);
 
 router.post(
   "/save",
