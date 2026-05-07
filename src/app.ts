@@ -1,6 +1,6 @@
 import express, { Application } from "express";
 import http from "http";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import jwt from "jsonwebtoken";
@@ -23,9 +23,25 @@ import { AUTH_COOKIE_NAME, readCookie } from "./utils/authCookie";
 const app: Application = express();
 const server = http.createServer(app);
 app.set("trust proxy", 1);
+
+const allowedOrigins = new Set([env.FRONTEND_URL].filter(Boolean));
+const corsOptions: CorsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204,
+};
+
 const io = new SocketIOServer(server, {
   cors: {
-    origin: env.FRONTEND_URL,
+    origin: Array.from(allowedOrigins),
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -65,6 +81,11 @@ registerExecutionSocket(io);
 // Security headers
 app.use(helmet());
 
+// CORS must run before routes and redirects so browser preflight requests
+// receive the credentialed CORS headers they need.
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+
 app.use((req, res, next) => {
   if (
     env.NODE_ENV === "production" &&
@@ -76,42 +97,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-// CORS configuration
-app.use(
-  cors({
-    origin: [env.FRONTEND_URL, env.BACKEND_URL],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
-
-// app.use((req, res, next) => {
-//   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
-//     return next();
-//   }
-
-//   const origin = req.headers.origin;
-//   const referer = req.headers.referer;
-//   const trustedOrigin = env.FRONTEND_URL;
-
-//   if (origin && origin !== trustedOrigin) {
-//     return res.status(403).json({
-//       success: false,
-//       message: "Invalid request origin",
-//     });
-//   }
-
-//   if (!origin && referer && !referer.startsWith(`${trustedOrigin}/`)) {
-//     return res.status(403).json({
-//       success: false,
-//       message: "Invalid request origin",
-//     });
-//   }
-
-//   next();
-// });
 
 // Request logging
 if (env.NODE_ENV === "development") {
