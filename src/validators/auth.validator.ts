@@ -24,13 +24,13 @@ export const signupSchema = Joi.object({
     .trim()
     .min(3)
     .max(30)
-    .pattern(/^[a-zA-Z0-9_]+$/)
+    .pattern(/^[a-zA-Z0-9_ ]+$/)
     .required()
     .messages({
       "string.min": "Username must be at least 3 characters",
       "string.max": "Username cannot exceed 30 characters",
       "string.pattern.base":
-        "Username can only contain letters, numbers, and underscores",
+        "Username can only contain letters, numbers, spaces, and underscores",
       "any.required": "Username is required",
     }),
   email: Joi.string().trim().email().lowercase().required().messages({

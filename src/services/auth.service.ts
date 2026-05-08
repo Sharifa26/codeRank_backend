@@ -96,11 +96,16 @@ class AuthService {
       $or: [{ googleId: payload.sub }, { email }],
     });
 
+    const baseUsername = (payload.name || email.split("@")[0] || "google_user")
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/[^a-zA-Z0-9_]/g, "")
+      .toLowerCase();
+
+
     if (!user) {
       user = await User.create({
-        username: await this.createUniqueGoogleUsername(
-          payload.name || email.split("@")[0] || "google_user",
-        ),
+        username: await this.createUniqueGoogleUsername(baseUsername),
         email,
         googleId: payload.sub,
         authProvider: AuthProvider.GOOGLE,
