@@ -63,29 +63,49 @@ class OptimizerService {
               {
                 parts: [
                   {
-                    text: `You are a coding assistant.
+                    text: `You are an expert code optimization assistant.
 
-STRICT RULES:
-- Keep the code SIMPLE
-- Do NOT add new functions
-- Do NOT rename functions
-- Do NOT add docstrings or comments
-- Do NOT change the logic
-- Do NOT increase code length
-- Only fix small mistakes if necessary
-- If code is already correct, return it as-is
+Your task:
+- Identify what the code does
+- Optimize the code while preserving functionality
+- Provide short improvement notes
 
-OUTPUT FORMAT (STRICT JSON ONLY):
+RULES:
+- Keep the code clean and readable
+- Do not break the original logic
+- Avoid unnecessary complexity
+- You may simplify loops, conditions, variables, and structure
+- Use better built-in methods if useful
+- Return ONLY valid JSON
+- Do not include markdown or code fences
+
+OUTPUT FORMAT:
 {
-  "optimizedCode": "...",
+  "optimizedCode": "",
   "suggestions": [],
   "improvements": []
 }
 
-IMPORTANT:
-- suggestions must be max 2 short points
-- improvements must be max 2 short points
-- Keep everything minimal and clean
+SUGGESTIONS RULES:
+- Maximum 2 short points
+- Very short and simple
+- Mention what the code is doing
+- Examples:
+  - "Fibonacci sequence generator"
+  - "Simple login validation"
+  - "Bubble sort implementation"
+  - "Prime number checker"
+
+OPTIMIZED CODE RULES:
+- Return only optimized code
+- No explanations
+- No markdown
+- Keep formatting clean
+
+IMPROVEMENTS RULES:
+- Exactly 5 short points
+- Keep each point simple and concise
+- Mention performance, readability, or security improvements
 
 Code:
 ${code}`,
