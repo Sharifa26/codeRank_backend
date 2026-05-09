@@ -46,6 +46,7 @@ class AuthController {
           email: user.email,
           avatar: user.avatar,
           authProvider: user.authProvider,
+          token: token,
         },
       });
     } catch (error) {
@@ -75,6 +76,7 @@ class AuthController {
           email: user.email,
           avatar: user.avatar,
           authProvider: user.authProvider,
+          token: token,
         },
       });
     } catch (error) {

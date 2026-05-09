@@ -246,6 +246,19 @@ coderank-backend/
 
 Frontend structure is maintained in the separate frontend repository and typically contains pages/components, API client utilities, editor UI, and deployment configuration.
 
+## Difficulties Faced While Building the Project
+- Understanding and configuring Docker and Docker Compose.
+- Executing code interactively using exec and spawn commands, especially handling real-time input and output.
+- Deploying the project on DigitalOcean, as I was unable to claim the available credits.
+- Unable to claim the required credentials for domain from github students pack and configuring a custom domain name.
+
+
+## Solutions Implemented
+- Learned and configured Docker and Docker Compose properly for containerized development and deployment.
+- Used Socket.IO to establish real-time communication between the frontend and backend for interactive code execution.
+- Deployed the project on AWS EC2 instead of DigitalOcean.
+- Used alternative deployment and hosting configurations until the domain setup issue was resolved.
+
 ## 🛡 Security Features
 
 - **Docker sandboxing:** User code runs inside isolated containers instead of directly on the host.
